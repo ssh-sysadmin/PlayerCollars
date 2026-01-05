@@ -6,5 +6,10 @@
   "item.playercollars.collar.owner": "Owner: %s",
   "item.playercollars.collar.become_owner": "Become Owner",
   "item.playercollars.collar.remove_owner": "Remove Owner",
-  "item.playercollars.clicker": "Clicker"
+  "item.playercollars.collar_locker": "Collar Lock-inator",
+  "item.playercollars.collar_locker.no_set_non_owner": "Must be owner to lock",
+  "item.playercollars.collar_locker.locked": "Collar locked on",
+  "item.playercollars.collar_locker.unlocked": "Collar unlocked",
+  "item.playercollars.clicker": "Clicker",
+  "item.playercollars.golden_spatula": "Golden Spatula"
 }
