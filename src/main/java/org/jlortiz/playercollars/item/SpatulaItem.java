@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.jlortiz.playercollars.PlayerCollarsMod;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -39,6 +41,9 @@ public class SpatulaItem extends Item{
             return new InteractionResultHolder<ItemStack>(removeResult, itemstack);
         }
 
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.CHAIN_BREAK, SoundSource.PLAYERS, 0.4f, 1.0f);
+
         player.displayClientMessage(Component.translatable("item.playercollars.collar_locker.unlocked"), true);
         itemstack.hurtAndBreak(1, player, (p_150845_) -> {
             p_150845_.broadcastBreakEvent(hand);
@@ -63,6 +68,9 @@ public class SpatulaItem extends Item{
         player.displayClientMessage(message, true);
         ((Player) otherEntity).displayClientMessage(message, canRepair);
         
+        player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.CHAIN_BREAK, SoundSource.PLAYERS, 0.4f, 1.0f);
+
         is.hurtAndBreak(1, player, (p_150845_) -> {
             p_150845_.broadcastBreakEvent(hand);
         });
