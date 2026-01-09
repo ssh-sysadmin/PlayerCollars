@@ -1,10 +1,13 @@
 package org.jlortiz.playercollars.item;
 
+import java.time.Instant;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jlortiz.playercollars.PlayerCollarsMod;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -116,4 +119,36 @@ public class SpatulaItem extends Item{
         return InteractionResult.SUCCESS;
     }
     
+    static boolean isEgg = false;
+    static long eggLastTime = 0L;
+    static final long eggMinTime = 5L * 1000L;
+    static final Component eggName = Component.translatable("item.playercollars.golden_spatula_egg");
+
+    @Override
+    public Component getName(ItemStack p_41458_) {
+        if (isEgg) {
+            if (eggLastTime + eggMinTime < (System.currentTimeMillis())) {
+                setEgg(false);
+                return super.getName(p_41458_);
+            }
+            return eggName;
+        } else {
+            Random rand = new Random();
+            if (rand.nextInt((15 * Math.max(Minecraft.getInstance().getFps(), 1))) == 0) {
+                setEgg(true);
+                return eggName;
+            }
+        }
+
+        return super.getName(p_41458_);
+    }
+    
+    static void setEgg(boolean state)
+    {
+        if(!isEgg && state)
+            eggLastTime = System.currentTimeMillis();
+
+        isEgg = state;
+    }
+
 }
