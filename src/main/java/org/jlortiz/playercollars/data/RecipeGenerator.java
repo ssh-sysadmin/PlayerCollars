@@ -19,14 +19,14 @@ public class RecipeGenerator extends RecipeProvider {
     }
 
     @Override
-    protected void buildRecipes(Consumer<FinishedRecipe> p_251297_) {
+    protected void buildRecipes(Consumer<FinishedRecipe> recipeExporter) {
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, PlayerCollarsMod.COLLAR_LOCKER_ITEM.get())
         .requires(Items.CHAIN)
         .requires(Items.CHAIN)
         .requires(Items.IRON_BARS)
         .requires(Items.REDSTONE)
         .unlockedBy("has_collar", has(PlayerCollarsMod.COLLAR_ITEM.get()))
-        .save(p_251297_);
+        .save(recipeExporter);
         
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, PlayerCollarsMod.SPATULA_ITEM.get())
@@ -36,7 +36,7 @@ public class RecipeGenerator extends RecipeProvider {
         .define('g', Items.GOLD_INGOT)
         .define('s', Items.STICK)
         .unlockedBy("has_gold", has(Items.GOLD_INGOT))
-        .save(p_251297_);
+        .save(recipeExporter);
     }
     
 }
