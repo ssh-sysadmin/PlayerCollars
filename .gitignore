@@ -28,6 +28,7 @@ bin/
 
 *.DS_Store
 
-# fabric
+# fabric/forge
 
 run/
+src/generated
