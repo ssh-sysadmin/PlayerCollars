@@ -30,5 +30,7 @@
   "item.playercollars.golden_spatula": "Golden Spatula",
   "item.playercollars.golden_spatula_egg": "Golden Saptula",
   "message.playercollars.no_attack_owner": "Don't attack your owner!",
+  "sound.playercollars.clicker_on": "Clicker clicks on",
+  "sound.playercollars.clicker_off": "Clicker clicks off",
   "":""
 }
