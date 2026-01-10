@@ -147,11 +147,11 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
         {
             ItemStack handItem = player.getMainHandItem();
             EquipmentSlot handSlotMut = EquipmentSlot.MAINHAND;
-            if (handItem.equals(is))
+            if (!handItem.equals(is))
             {
                 handItem = player.getOffhandItem();
                 handSlotMut = EquipmentSlot.OFFHAND;
-                if (handItem.equals(is))
+                if (!handItem.equals(is))
                     return InteractionResult.FAIL;
             }
 
