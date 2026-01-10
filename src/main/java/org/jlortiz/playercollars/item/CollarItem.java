@@ -212,4 +212,27 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
     public boolean isEnchantable(ItemStack p_41456_) {
         return true;
     }
+
+    @Override
+    @Nonnull
+    public DropRule getDropRule(SlotContext slotContext, DamageSource source, int lootingLevel, boolean recentlyHit) {
+        AtomicBoolean isLocked = new AtomicBoolean(false);
+
+        CuriosApi.getCuriosInventory(slotContext.entity()).ifPresent((handler) -> {
+            handler.getStacksHandler("necklace").ifPresent((slot) -> {
+                
+                ItemStack is = slot.getStacks().getStackInSlot(slotContext.index());
+                if(is.getItem() != this)
+                    return;
+
+                if(is.getEnchantmentLevel(Enchantments.BINDING_CURSE) > 0)
+                    isLocked.set(true);
+            });
+        });
+
+        if(isLocked.get())
+            return DropRule.ALWAYS_KEEP;
+        else
+            return DropRule.DEFAULT;
+    }
 }
