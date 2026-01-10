@@ -1,0 +1,8 @@
+{
+    "type": "playercollars:owner_transfer",
+    "category": "misc",
+    "base": 
+    {
+        "item": "playercollars:collar"
+    }
+}

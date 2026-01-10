@@ -7,11 +7,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeableLeatherItem;
@@ -36,6 +39,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
+import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
@@ -124,6 +128,72 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
             return new InteractionResultHolder<>(InteractionResult.SUCCESS, ir.getObject());
         }
         return ir;
+    }
+
+    @Override
+    public InteractionResult interactLivingEntity(ItemStack is, Player player, LivingEntity otherEntity,
+            InteractionHand p_41401_) {
+        Pair<UUID, String> bondedData = OwnershipData.getBonded(is);
+        if(bondedData == null)
+            return InteractionResult.PASS;
+
+        if(!(otherEntity instanceof Player))
+            return InteractionResult.PASS;
+
+        Player otherPlayer = (Player) otherEntity;
+
+        Pair<UUID, String> ownerData = OwnershipData.getOwner(is);
+        if(ownerData.getFirst().equals(player.getUUID()) && bondedData.getFirst().equals(otherEntity.getUUID()))
+        {
+            ItemStack handItem = player.getMainHandItem();
+            EquipmentSlot handSlotMut = EquipmentSlot.MAINHAND;
+            if (handItem.equals(is))
+            {
+                handItem = player.getOffhandItem();
+                handSlotMut = EquipmentSlot.OFFHAND;
+                if (handItem.equals(is))
+                    return InteractionResult.FAIL;
+            }
+
+
+            final EquipmentSlot handSlot = handSlotMut;
+            CuriosApi.getCuriosInventory(otherPlayer).ifPresent((handler) -> {
+                handler.getStacksHandler("necklace").ifPresent((slot) -> {
+
+                    IDynamicStackHandler stack = slot.getStacks();
+                    int slotIndex = 0;
+                    boolean foundEmptySlot = false;
+                    for (slotIndex = 0; slotIndex < slot.getSlots(); slotIndex++) {
+                        ItemStack necklaceSlotStack = stack.getStackInSlot(slotIndex);
+                        if (necklaceSlotStack.isEmpty()) {
+                            foundEmptySlot = true;
+                            break;
+                        }
+                    }
+
+                    if (foundEmptySlot)
+                    {
+                        player.setItemSlot(handSlot, ItemStack.EMPTY);
+                        stack.insertItem(slotIndex, is, false);
+                        otherPlayer.level().playSound(null, otherPlayer.getX(), otherPlayer.getY(), otherPlayer.getZ(),
+                            SoundEvents.ARMOR_EQUIP_GENERIC, SoundSource.PLAYERS, 1.0f,
+                            1.0f);
+                    }
+                });
+            });
+            return InteractionResult.CONSUME;
+        }
+        
+        return InteractionResult.PASS;
+    }
+
+
+    @Override
+    public Component getName(ItemStack is) {
+        Pair<UUID, String> bondedData = OwnershipData.getBonded(is);
+        if(bondedData != null)
+            return Component.translatable("item.playercollars.collar.named", bondedData.getSecond());
+        return super.getName(is);
     }
 
     @Override

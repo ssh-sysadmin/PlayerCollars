@@ -19,6 +19,8 @@ public class ItemModelGenerator extends ItemModelProvider {
     @Override
     protected void registerModels() {
         this.basicItem(PlayerCollarsMod.COLLAR_LOCKER_ITEM.get());
+        this.basicItem(PlayerCollarsMod.DEED_OF_OWNERSHIP.get());
+        this.basicItem(PlayerCollarsMod.DEED_OF_OWNERSHIP_STAMPED.get());
 
         ResourceLocation rlSpatula = ForgeRegistries.ITEMS.getKey(PlayerCollarsMod.SPATULA_ITEM.get());
         getBuilder(rlSpatula.toString())

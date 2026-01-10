@@ -28,6 +28,13 @@ public class RecipeGenerator extends RecipeProvider {
         .unlockedBy("has_collar", has(PlayerCollarsMod.COLLAR_ITEM.get()))
         .save(recipeExporter);
         
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, PlayerCollarsMod.DEED_OF_OWNERSHIP.get())
+        .requires(Items.PAPER)
+        .requires(Items.LEAD)
+        .requires(Items.INK_SAC)
+        .requires(Items.FEATHER)
+        .unlockedBy("has_paper", has(Items.PAPER))
+        .save(recipeExporter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, PlayerCollarsMod.SPATULA_ITEM.get())
         .pattern("  g")
