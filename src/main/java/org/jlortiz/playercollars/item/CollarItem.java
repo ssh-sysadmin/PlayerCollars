@@ -30,7 +30,8 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jlortiz.playercollars.OwnershipData;
-import org.jlortiz.playercollars.client.CollarDyeScreen;
+import org.jlortiz.playercollars.client.screen.CollarDyeScreen;
+
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
 import top.theillusivec4.curios.api.SlotContext;
