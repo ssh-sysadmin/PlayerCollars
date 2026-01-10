@@ -20,6 +20,7 @@ import net.minecraftforge.registries.RegistryObject;
 import org.jlortiz.playercollars.item.ClickerItem;
 import org.jlortiz.playercollars.item.CollarItem;
 import org.jlortiz.playercollars.item.CollarLockerItem;
+import org.jlortiz.playercollars.item.OwnershipCraftingRecipe;
 import org.jlortiz.playercollars.item.SpatulaItem;
 
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
@@ -53,7 +54,7 @@ public class PlayerCollarsMod {
 		for (int i = 0; i < stacks.getSlots(); i++) {
 			ItemStack is = stacks.getStackInSlot(i);
 			if (is.getItem() instanceof CollarItem item) {
-				Pair<UUID, String> owner = item.getOwner(is);
+				Pair<UUID, String> owner = OwnershipData.getOwner(is);
 				if (owner != null && owner.getFirst().equals(plr)) {
 					return is;
 				}

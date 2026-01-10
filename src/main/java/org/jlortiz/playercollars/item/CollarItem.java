@@ -29,6 +29,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jlortiz.playercollars.OwnershipData;
 import org.jlortiz.playercollars.client.CollarDyeScreen;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
@@ -79,7 +80,7 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
         if (ent.level().isClientSide) return;
         CuriosApi.getCuriosInventory(ent).ifPresent((handler) -> handler.findCurio(slotContext.identifier(), slotContext.index()).ifPresent((sr) -> {
             if (this.getEnchantmentLevel(sr.stack(), Enchantments.MENDING) == 0) return;
-            Pair<UUID, String> owner = this.getOwner(sr.stack());
+            Pair<UUID, String> owner = OwnershipData.getOwner(sr.stack());
             if (owner == null || owner.getFirst().equals(ent.getUUID())) return;
             Player own = ent.level().getPlayerByUUID(owner.getFirst());
             if (own != null && own.distanceTo(ent) < 16) {
@@ -112,21 +113,6 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
         $$1.putInt("paw", col);
     }
 
-    public @Nullable Pair<UUID, String> getOwner(ItemStack is) {
-        CompoundTag $$1 = is.getTagElement("owner");
-        if ($$1 == null || !$$1.contains("uuid") || !$$1.contains("name")) return null;
-        return new Pair<>($$1.getUUID("uuid"), $$1.getString("name"));
-    }
-
-    public void setOwner(ItemStack is, @Nullable UUID uuid, @Nullable String name) {
-        if (uuid == null || name == null) {
-            is.removeTagKey("owner");
-            return;
-        }
-        CompoundTag $$1 = is.getOrCreateTagElement("owner");
-        $$1.putUUID("uuid", uuid);
-        $$1.putString("name", name);
-    }
 
     @Override
     @OnlyIn(Dist.CLIENT)
@@ -145,7 +131,7 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
         if (p_41424_.isAdvanced()) {
             p_41423_.add(Component.translatable("item.playercollars.collar.paw_color", Integer.toHexString(getPawColor(p_41421_))).withStyle(ChatFormatting.GRAY));
         }
-        Pair<UUID, String> owner = getOwner(p_41421_);
+        Pair<UUID, String> owner = OwnershipData.getOwner(p_41421_);
         if (owner != null) {
             p_41423_.add(Component.translatable("item.playercollars.collar.owner", owner.getSecond()).withStyle(ChatFormatting.GRAY));
         }

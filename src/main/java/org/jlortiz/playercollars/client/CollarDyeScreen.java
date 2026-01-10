@@ -7,6 +7,8 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+
+import org.jlortiz.playercollars.OwnershipData;
 import org.jlortiz.playercollars.PacketUpdateCollar;
 import org.jlortiz.playercollars.PlayerCollarsMod;
 import org.jlortiz.playercollars.item.CollarItem;
@@ -28,7 +30,7 @@ public class CollarDyeScreen extends Screen {
         this.ownUUID = plr;
         initColor = item.getColor(is);
         initPaw = item.getPawColor(is);
-        Pair<UUID, String> owner = item.getOwner(is);
+        Pair<UUID, String> owner = OwnershipData.getOwner(is);
         ownerUUID = owner == null ? null : owner.getFirst();
         ownerName = owner == null ? null : owner.getSecond();
     }
