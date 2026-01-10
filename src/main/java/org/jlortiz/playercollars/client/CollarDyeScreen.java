@@ -9,9 +9,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import org.jlortiz.playercollars.OwnershipData;
-import org.jlortiz.playercollars.PacketUpdateCollar;
 import org.jlortiz.playercollars.PlayerCollarsMod;
 import org.jlortiz.playercollars.item.CollarItem;
+import org.jlortiz.playercollars.network.PacketUpdateCollar;
 
 import java.util.UUID;
 

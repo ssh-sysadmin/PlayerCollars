@@ -1,4 +1,4 @@
-package org.jlortiz.playercollars;
+package org.jlortiz.playercollars.network;
 
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.network.FriendlyByteBuf;

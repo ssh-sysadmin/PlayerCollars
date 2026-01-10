@@ -16,8 +16,10 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.PacketDistributor;
-import org.jlortiz.playercollars.PacketLookAtLerped;
+
 import org.jlortiz.playercollars.PlayerCollarsMod;
+import org.jlortiz.playercollars.network.PacketLookAtLerped;
+
 import top.theillusivec4.curios.api.CuriosApi;
 
 import javax.annotation.ParametersAreNonnullByDefault;

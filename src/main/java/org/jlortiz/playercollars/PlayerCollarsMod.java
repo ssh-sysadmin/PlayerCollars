@@ -22,6 +22,8 @@ import org.jlortiz.playercollars.item.CollarItem;
 import org.jlortiz.playercollars.item.CollarLockerItem;
 import org.jlortiz.playercollars.item.OwnershipCraftingRecipe;
 import org.jlortiz.playercollars.item.SpatulaItem;
+import org.jlortiz.playercollars.network.PacketLookAtLerped;
+import org.jlortiz.playercollars.network.PacketUpdateCollar;
 
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 

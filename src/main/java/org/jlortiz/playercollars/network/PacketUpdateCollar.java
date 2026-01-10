@@ -1,9 +1,12 @@
-package org.jlortiz.playercollars;
+package org.jlortiz.playercollars.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
+
+import org.jlortiz.playercollars.OwnershipData;
+import org.jlortiz.playercollars.PlayerCollarsMod;
 import org.jlortiz.playercollars.item.CollarItem;
 
 import java.util.function.Supplier;
