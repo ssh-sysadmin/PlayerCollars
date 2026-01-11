@@ -14,7 +14,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeableLeatherItem;
@@ -132,7 +131,7 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack is, Player player, LivingEntity otherEntity,
-            InteractionHand p_41401_) {
+            InteractionHand hand) {
         Pair<UUID, String> bondedData = OwnershipData.getBonded(is);
         if(bondedData == null)
             return InteractionResult.PASS;
@@ -145,18 +144,6 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
         Pair<UUID, String> ownerData = OwnershipData.getOwner(is);
         if(ownerData.getFirst().equals(player.getUUID()) && bondedData.getFirst().equals(otherEntity.getUUID()))
         {
-            ItemStack handItem = player.getMainHandItem();
-            EquipmentSlot handSlotMut = EquipmentSlot.MAINHAND;
-            if (!handItem.equals(is))
-            {
-                handItem = player.getOffhandItem();
-                handSlotMut = EquipmentSlot.OFFHAND;
-                if (!handItem.equals(is))
-                    return InteractionResult.FAIL;
-            }
-
-
-            final EquipmentSlot handSlot = handSlotMut;
             CuriosApi.getCuriosInventory(otherPlayer).ifPresent((handler) -> {
                 handler.getStacksHandler("necklace").ifPresent((slot) -> {
 
@@ -173,7 +160,7 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
 
                     if (foundEmptySlot)
                     {
-                        player.setItemSlot(handSlot, ItemStack.EMPTY);
+                        player.setItemInHand(hand, ItemStack.EMPTY);
                         stack.insertItem(slotIndex, is, false);
                         otherPlayer.level().playSound(null, otherPlayer.getX(), otherPlayer.getY(), otherPlayer.getZ(),
                             SoundEvents.ARMOR_EQUIP_GENERIC, SoundSource.PLAYERS, 1.0f,
