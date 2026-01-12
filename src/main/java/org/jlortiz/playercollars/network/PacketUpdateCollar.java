@@ -44,9 +44,10 @@ public class PacketUpdateCollar {
                 item.setColor(is, color);
                 item.setPawColor(is, pawColor);
                 if (os == OwnerState.DEL) {
-                    OwnershipData.setOwner(is, null, null);
+                    OwnershipData.removeOwner(is, p.getUUID(), p.getName().getString());
                 } else if (os == OwnerState.ADD) {
-                    OwnershipData.setOwner(is, p.getUUID(), p.getName().getString());
+                    if(OwnershipData.getBonded(is) == null)
+                        OwnershipData.addOwner(is, p.getUUID(), p.getName().getString());
                 }
             }
         });

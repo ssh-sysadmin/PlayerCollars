@@ -19,20 +19,24 @@ public class CollarDyeScreen extends Screen {
     private final ItemStack is;
     private final CollarItem item;
     private final int initColor, initPaw;
-    private final UUID ownUUID;
-    private UUID ownerUUID;
-    private final String ownerName;
+    private final Pair<UUID, String> bondedData;
+    private final boolean isBonded;
+    private boolean isOwner;
+    private final boolean wasOwner;
 
     public CollarDyeScreen(ItemStack is, UUID plr) {
         super(is.getDisplayName());
         this.is = is;
         this.item = PlayerCollarsMod.COLLAR_ITEM.get();
-        this.ownUUID = plr;
         initColor = item.getColor(is);
         initPaw = item.getPawColor(is);
-        Pair<UUID, String> owner = OwnershipData.getOwner(is);
-        ownerUUID = owner == null ? null : owner.getFirst();
-        ownerName = owner == null ? null : owner.getSecond();
+        bondedData = OwnershipData.getBonded(is);
+        if(bondedData != null)
+            isBonded = bondedData.getFirst().equals(plr);
+        else
+            isBonded = false;
+        isOwner = OwnershipData.isOwner(is, plr, null);
+        wasOwner = isOwner;
     }
 
     @Override
@@ -69,8 +73,14 @@ public class CollarDyeScreen extends Screen {
         this.addRenderableWidget(dyeField);
         this.addRenderableWidget(pawField);
         this.addRenderableWidget(Button.builder(Component.literal("Done"), (btn) -> {
-            PacketUpdateCollar.OwnerState os = ownerUUID == null ? PacketUpdateCollar.OwnerState.DEL : (ownerUUID.equals(ownUUID) ? PacketUpdateCollar.OwnerState.ADD : PacketUpdateCollar.OwnerState.NOP);
-            PlayerCollarsMod.NETWORK.sendToServer(new PacketUpdateCollar(is, os));
+            if (wasOwner != isOwner || initColor != item.getColor(is) || initColor != item.getPawColor(is)) {
+                PacketUpdateCollar.OwnerState os = PacketUpdateCollar.OwnerState.NOP;
+                if(wasOwner && !isOwner)
+                    os = PacketUpdateCollar.OwnerState.DEL;
+                else if (!wasOwner && isOwner)
+                    os = PacketUpdateCollar.OwnerState.ADD;
+                PlayerCollarsMod.NETWORK.sendToServer(new PacketUpdateCollar(is, os));
+            }
             this.minecraft.setScreen(null);
         }).bounds(x + 5, y + 50, 75, 20).build());
         this.addRenderableWidget(Button.builder(Component.literal("Cancel"), (btn) -> {
@@ -79,25 +89,28 @@ public class CollarDyeScreen extends Screen {
             this.minecraft.setScreen(null);
         }).bounds(x - 80, y + 50, 75, 20).build());
 
-        Button ownerButton = Button.builder(Component.empty(), this::updateOwner).bounds(x - 80, y + 72, 160, 20).build();
-        if (ownerUUID == null) {
+        Button ownerButton = Button.builder(Component.empty(), this::updateOwner).bounds(x - 80, y + 72, 160, 20)
+                .build();
+        if (!isOwner) {
             ownerButton.setMessage(Component.translatable("item.playercollars.collar.become_owner"));
-        } else if (ownerUUID.equals(ownUUID)) {
+        } else if (isOwner) {
             ownerButton.setMessage(Component.translatable("item.playercollars.collar.remove_owner"));
-        } else {
-            ownerButton.setMessage(Component.translatable("item.playercollars.collar.owner", ownerName));
-            ownerButton.active = false;
         }
+        if (isBonded)
+            ownerButton.active = false;
+
         this.addRenderableWidget(ownerButton);
     }
 
     private void updateOwner(Button btn) {
-        if (ownerUUID == null) {
-            ownerUUID = ownUUID;
+        if (!isOwner) {
+            isOwner = true;
             btn.setMessage(Component.translatable("item.playercollars.collar.remove_owner"));
         } else {
-            ownerUUID = null;
+            isOwner = false;
             btn.setMessage(Component.translatable("item.playercollars.collar.become_owner"));
+            if(bondedData != null)
+                btn.active = false;
         }
     }
 

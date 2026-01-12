@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
@@ -45,9 +45,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 
 @Mod(PlayerCollarsMod.MOD_ID)
@@ -87,12 +88,12 @@ public class PlayerCollarsMod {
 		NETWORK.registerMessage(3, PacketStampDeed.class, PacketStampDeed::encode, PacketStampDeed::new, PacketStampDeed::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
 	}
 
+	@Nullable
 	public static ItemStack filterStacksByOwner(IDynamicStackHandler stacks, UUID plr) {
 		for (int i = 0; i < stacks.getSlots(); i++) {
 			ItemStack is = stacks.getStackInSlot(i);
 			if (is.getItem() instanceof CollarItem item) {
-				Pair<UUID, String> owner = OwnershipData.getOwner(is);
-				if (owner != null && owner.getFirst().equals(plr)) {
+				if (OwnershipData.getOwnersCount(is) != 0 && OwnershipData.isOwner(is, plr, null)) {
 					return is;
 				}
 			}
@@ -121,8 +122,7 @@ public class PlayerCollarsMod {
 				//Result = Default
 				return;
 
-			Pair<UUID, String> ownerData = OwnershipData.getOwner(is);
-			if (ownerData == null)
+			if (OwnershipData.getOwnersCount(is) == 0)
 				//Result = Default
 				return;
 
@@ -144,20 +144,24 @@ public class PlayerCollarsMod {
 
 			event.setResult(Result.ALLOW);
 		}
-
+		
 		@SubscribeEvent
-		public static void attackEntityEvent(AttackEntityEvent event)
+		public static void livingHurtEvent(LivingHurtEvent event)
 		{
-			Entity target = event.getTarget();
-			if (!(target instanceof Player)) {
+			Entity causingEntity = event.getSource().getEntity();
+			Entity hurtEntity = event.getEntity();
+			if(causingEntity == null || hurtEntity == null)
 				return;
-			}
 
-			Player targetPlayer = (Player) target;
+			if(!(causingEntity instanceof Player) || !(hurtEntity instanceof Player))
+				return;
+
+			Player attackingPlayer = (Player) causingEntity;
+			Player targetPlayer = (Player) hurtEntity;
 
 			AtomicBoolean denyAttack = new AtomicBoolean(false);
 
-			CuriosApi.getCuriosInventory(event.getEntity())
+			CuriosApi.getCuriosInventory(attackingPlayer)
 					.ifPresent((handler) -> handler.getStacksHandler("necklace").ifPresent((slot) -> {
 
 						boolean targetIsOwner = false;
@@ -165,26 +169,24 @@ public class PlayerCollarsMod {
 						for (int i = 0; i < stacks.getSlots(); i++) {
 							ItemStack tempis = stacks.getStackInSlot(i);
 							if (tempis.getItem() instanceof CollarItem) {
-								Pair<UUID, String> ownerData = OwnershipData.getOwner(tempis);
-								if (ownerData != null && ownerData.getFirst().equals(targetPlayer.getUUID())) {
+								if (OwnershipData.getOwnersCount(tempis) > 0
+										&& OwnershipData.isOwner(tempis, targetPlayer.getUUID(), null)) {
 									targetIsOwner = true;
 									break;
 								}
 							}
 						}
 
-						if(!targetIsOwner)
+						if (!targetIsOwner)
 							return;
 
-						Player attacker = event.getEntity();
-
-						if (!attacker.level().getGameRules().getBoolean(RULE_ALLOW_ATTACK_OWNER)) {
+						if (!attackingPlayer.level().getGameRules().getBoolean(RULE_ALLOW_ATTACK_OWNER)) {
 							denyAttack.set(true);
 							return;
 						}
 
-						double damage = attacker.getAttributeValue(Attributes.ATTACK_DAMAGE);
-						double damagePercent = attacker.level().getGameRules().getInt(RULE_OWNER_ATTACK_DAMAGE_RETURNED_PERCENT) / 100.0D;
+						double damage = event.getAmount();
+						double damagePercent = attackingPlayer.level().getGameRules().getInt(RULE_OWNER_ATTACK_DAMAGE_RETURNED_PERCENT) / 100.0D;
 						damage = damage * damagePercent;
 						if (damage > 0)
 							damage = Math.ceil(damage);
@@ -192,19 +194,13 @@ public class PlayerCollarsMod {
 							damage = Math.floor(damage);
 
 						if (damage > 0) {
-							attacker.displayClientMessage(Component.translatable("message.playercollars.no_attack_owner").withStyle(ChatFormatting.RED),
-									true);
-							attacker.hurt(attacker.damageSources().playerAttack(attacker), (float) damage);
+							attackingPlayer.displayClientMessage(
+									Component.translatable("message.playercollars.no_attack_owner").withStyle(ChatFormatting.RED),true);
+							attackingPlayer.hurt(attackingPlayer.damageSources().playerAttack(attackingPlayer), (float) damage);
 						} else if (damage < 0) {
-							attacker.heal((float) -damage);
+							attackingPlayer.heal((float) -damage);
 						}
 					}));
-
-			if(denyAttack.get())
-			{
-				event.setCanceled(true);
-			}
-			
 		}
 	}
 }

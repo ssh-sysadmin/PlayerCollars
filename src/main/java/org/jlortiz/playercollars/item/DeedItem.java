@@ -29,10 +29,9 @@ public class DeedItem extends Item{
         ItemStack is = player.getItemInHand(hand);
 
         if (level.isClientSide()) {
-            Pair<UUID, String> owner = OwnershipData.getOwner(is);
             Pair<UUID, String> bonded = OwnershipData.getBonded(is);
-            if (owner != null && bonded == null) {
-                if (owner.getFirst().equals(player.getUUID())) {
+            if (OwnershipData.getOwnersCount(is) == 1 && bonded == null) {
+                if (OwnershipData.isOwner(is, player)) {
                     player.displayClientMessage(
                             Component.translatable("item.playercollars.deed_of_ownership.no_self_own"), true);
                     return new InteractionResultHolder<ItemStack>(InteractionResult.PASS, is);
@@ -41,9 +40,9 @@ public class DeedItem extends Item{
                 return new InteractionResultHolder<ItemStack>(InteractionResult.CONSUME, is);
             }
         }
-        else if (OwnershipData.getOwner(is) == null)
+        else if (OwnershipData.getOwnersCount(is) == 0)
         {
-            OwnershipData.setOwner(is, player.getUUID(), player.getName().getString());
+            OwnershipData.addOwner(is, player.getUUID(), player.getName().getString());
             player.displayClientMessage(Component.translatable("item.playercollars.deed_of_ownership.filled_out"),
                     true);
             return new InteractionResultHolder<ItemStack>(InteractionResult.CONSUME, is);

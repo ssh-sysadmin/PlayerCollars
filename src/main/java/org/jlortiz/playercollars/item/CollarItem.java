@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
@@ -40,12 +41,18 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
+import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICapabilityProvider {
+
+    public static final int tickInterval = 59;
+    private int tickTimer = 0;
+
 
     private static final Set<Enchantment> ALLOWED_ENCHANTMENTS = new HashSet<>();
     static {
@@ -79,17 +86,47 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
     }
 
     @Override
+    public void onEquip(SlotContext slotContext, ItemStack prevStack) {
+        tickTimer = tickInterval;
+        ICurio.super.onEquip(slotContext, prevStack);
+    }
+
+    @Override
     public void curioTick(SlotContext slotContext) {
+        if(tickTimer != tickInterval) {
+            tickTimer++;
+            return;
+        } else {
+            tickTimer = 0;
+        }
+
         LivingEntity ent = slotContext.entity();
         if (ent.level().isClientSide) return;
         CuriosApi.getCuriosInventory(ent).ifPresent((handler) -> handler.findCurio(slotContext.identifier(), slotContext.index()).ifPresent((sr) -> {
-            if (this.getEnchantmentLevel(sr.stack(), Enchantments.MENDING) == 0) return;
-            Pair<UUID, String> owner = OwnershipData.getOwner(sr.stack());
-            if (owner == null || owner.getFirst().equals(ent.getUUID())) return;
-            Player own = ent.level().getPlayerByUUID(owner.getFirst());
-            if (own != null && own.distanceTo(ent) < 16) {
-                ent.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 40, 0, false, false, false));
+            ItemStack is = sr.stack();
+            if (this.getEnchantmentLevel(is, Enchantments.MENDING) == 0)
+                return;
+            
+            if (OwnershipData.getOwnersCount(is) == 0)
+                return;
+
+            ArrayList<Pair<UUID, String>> ownersList = OwnershipData.getOwnersArrayList(is);
+            boolean foundOwnerNearby = false;
+            for(Pair<UUID, String> owner : ownersList)
+            {
+                if(owner.getFirst().equals(ent.getUUID()))
+                    continue;
+
+                Player own = ent.level().getPlayerByUUID(owner.getFirst());
+                if (own != null && own.distanceTo(ent) < 16) {
+                    foundOwnerNearby = true;
+                    break;
+                }
             }
+            
+            if(foundOwnerNearby)
+                ent.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0, false, false, false));
+            
         }));
     }
 
@@ -123,8 +160,14 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
     public InteractionResultHolder<ItemStack> use(Level p_41432_, Player p_41433_, InteractionHand p_41434_) {
         InteractionResultHolder<ItemStack> ir = super.use(p_41432_, p_41433_, p_41434_);
         if (ir.getResult() == InteractionResult.PASS && p_41433_.isCrouching() && p_41432_.isClientSide) {
-            Minecraft.getInstance().setScreen(new CollarDyeScreen(ir.getObject(), p_41433_.getUUID()));
-            return new InteractionResultHolder<>(InteractionResult.SUCCESS, ir.getObject());
+            ItemStack is = p_41433_.getItemInHand(p_41434_);
+            if (OwnershipData.getBonded(is) == null || OwnershipData.isOwner(is, p_41433_) || OwnershipData.getBonded(is).getFirst().equals(p_41433_.getUUID()) ) {
+                Minecraft.getInstance().setScreen(new CollarDyeScreen(ir.getObject(), p_41433_.getUUID()));
+                return new InteractionResultHolder<>(InteractionResult.SUCCESS, ir.getObject());
+            } else {
+                p_41433_.displayClientMessage(Component.translatable("item.playercollars.collar.use_deed"), true);
+                return new InteractionResultHolder<>(InteractionResult.FAIL, ir.getObject());
+            }
         }
         return ir;
     }
@@ -141,8 +184,7 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
 
         Player otherPlayer = (Player) otherEntity;
 
-        Pair<UUID, String> ownerData = OwnershipData.getOwner(is);
-        if(ownerData.getFirst().equals(player.getUUID()) && bondedData.getFirst().equals(otherEntity.getUUID()))
+        if(OwnershipData.isOwner(is, player) && bondedData.getFirst().equals(otherEntity.getUUID()))
         {
             CuriosApi.getCuriosInventory(otherPlayer).ifPresent((handler) -> {
                 handler.getStacksHandler("necklace").ifPresent((slot) -> {
@@ -187,10 +229,12 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
     public void appendHoverText(ItemStack p_41421_, @Nullable Level p_41422_, List<Component> p_41423_, @NotNull TooltipFlag p_41424_) {
         super.appendHoverText(p_41421_, p_41422_, p_41423_, p_41424_);
         if (p_41424_.isAdvanced()) {
-            p_41423_.add(Component.translatable("item.playercollars.collar.paw_color", Integer.toHexString(getPawColor(p_41421_))).withStyle(ChatFormatting.GRAY));
+            p_41423_.add(Component
+                    .translatable("item.playercollars.collar.paw_color", Integer.toHexString(getPawColor(p_41421_)))
+                    .withStyle(ChatFormatting.GRAY));
         }
-        Pair<UUID, String> owner = OwnershipData.getOwner(p_41421_);
-        if (owner != null) {
+        
+        for(Pair<UUID, String> owner : OwnershipData.getOwnersArrayList(p_41421_)) {
             p_41423_.add(Component.translatable("item.playercollars.collar.owner", owner.getSecond()).withStyle(ChatFormatting.GRAY));
         }
     }

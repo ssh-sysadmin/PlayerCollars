@@ -1,10 +1,6 @@
 package org.jlortiz.playercollars.item;
 
-import java.util.UUID;
-
 import org.jlortiz.playercollars.OwnershipData;
-
-import com.mojang.datafixers.util.Pair;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -18,10 +14,9 @@ public class StampedDeedItem extends Item{
     
     @Override
     public Component getName(ItemStack is) {
-        Pair<UUID, String> ownerData = OwnershipData.getOwner(is);
-        if (ownerData == null)
+        if (OwnershipData.getOwnersCount(is) == 0)
             return Component.translatable("item.playercollars.stamped_deed_of_ownership.invalid");
-        return Component.translatable("item.playercollars.stamped_deed_of_ownership", ownerData.getSecond());
+        return Component.translatable("item.playercollars.stamped_deed_of_ownership", OwnershipData.getOwnersArrayList(is).get(0).getSecond());
     }
 
 }

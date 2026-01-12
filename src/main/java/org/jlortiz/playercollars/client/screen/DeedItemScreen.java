@@ -17,7 +17,10 @@ public class DeedItemScreen extends Screen {
 
     public DeedItemScreen(ItemStack is, Player plr) {
         super(is.getDisplayName());
-        this.ownerName = Component.literal(OwnershipData.getOwner(is).getSecond());
+        if (OwnershipData.getOwnersCount(is) == 0)
+            this.ownerName = Component.literal("");
+        else
+            this.ownerName = Component.literal(OwnershipData.getOwnersArrayList(is).get(0).getSecond());
         this.player = plr;
     }
     

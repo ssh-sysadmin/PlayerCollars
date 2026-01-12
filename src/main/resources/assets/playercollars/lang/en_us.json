@@ -7,6 +7,7 @@
   "item.playercollars.collar.named": "%s's Collar",
   "item.playercollars.collar.become_owner": "Become Owner",
   "item.playercollars.collar.remove_owner": "Remove Owner",
+  "item.playercollars.collar.use_deed": "Must use deed and become an owner to modify this collar",
   "item.playercollars.collar_locker": "Collar Lock-inator",
   "item.playercollars.collar_locker.no_set_non_owner": "Must be owner to lock",
   "item.playercollars.collar_locker.locked": "Collar locked on",

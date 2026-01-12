@@ -37,7 +37,10 @@ public class PacketStampDeed {
                 return;
         }
 
-        Pair<UUID, String> ownerData = OwnershipData.getOwner(is);
+        if(OwnershipData.getOwnersCount(is) == 0)
+            return;
+
+        Pair<UUID, String> ownerData = OwnershipData.getOwnersArrayList(is).get(0);
         if (ownerData == null)
             return;
 
@@ -46,7 +49,7 @@ public class PacketStampDeed {
             return;
 
         is = new ItemStack(PlayerCollarsMod.DEED_OF_OWNERSHIP_STAMPED.get());
-        OwnershipData.setOwner(is, ownerData.getFirst(), ownerData.getSecond());
+        OwnershipData.addOwner(is, ownerData.getFirst(), ownerData.getSecond());
         OwnershipData.setBonded(is, player.getUUID(), player.getName().getString());
 
         player.setItemSlot(hand, is);

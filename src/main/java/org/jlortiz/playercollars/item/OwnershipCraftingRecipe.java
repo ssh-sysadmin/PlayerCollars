@@ -1,5 +1,6 @@
 package org.jlortiz.playercollars.item;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.jetbrains.annotations.Nullable;
@@ -26,58 +27,108 @@ public record OwnershipCraftingRecipe(ResourceLocation id, Ingredient base, Craf
 
     @Override
     public boolean matches(CraftingContainer container, Level level) {
-        int baseCount = 0;
         int deedCount = 0;
+        int baseCount = 0;
+
+        UUID bondedUUID = null;
 
         for (int i = 0; i < container.getContainerSize(); i++) {
             ItemStack is = container.getItem(i);
             if (base.test(is)) {
-                baseCount++;
-                if (baseCount > 1)
+                if (baseCount == 1)
                     return false;
+
+                baseCount++;
 
                 Pair<UUID, String> bondedData = OwnershipData.getBonded(is);
-
-                if (bondedData != null)
-                    return false;
-
+                if (bondedData != null) {
+                    if (bondedUUID == null) {
+                        bondedUUID = bondedData.getFirst();
+                    }
+                    else {
+                        if (!(bondedData.getFirst().equals(bondedUUID)))
+                            return false;
+                    }
+                }
             } else if (is.getItem() instanceof StampedDeedItem) {
+                Pair<UUID, String> bondedData = OwnershipData.getBonded(is);
+                if (bondedUUID == null) {
+                    bondedUUID = bondedData.getFirst();
+                } else {
+                    if (!(bondedData.getFirst().equals(bondedUUID)))
+                        return false;
+                }
+
                 deedCount++;
-                if (deedCount > 1)
+            } else {
+                if(!is.isEmpty())
                     return false;
             }
 
         }
-        if (baseCount == 1 && deedCount == 1)
-            return true;
 
-        return false;
+        if (deedCount == 0 || baseCount != 1)
+            return false;
+
+        return true;
     }
 
     @SuppressWarnings("null")
     @Override
     public ItemStack assemble(CraftingContainer container, RegistryAccess regAccess) {
         ItemStack output = null;
-        Pair<UUID, String> ownerData = null;
-        Pair<UUID, String> bondedData = null;
+        ArrayList<Pair<UUID, String>> newOwners = new ArrayList<>();
+        Pair<UUID, String> outputBondedData = null;
         for (int i = 0; i < container.getContainerSize(); i++) {
             ItemStack is = container.getItem(i);
             if (base.test(is)) {
-                output = is.copy();
+                Pair<UUID, String> bondedData = OwnershipData.getBonded(is);
+                if (bondedData != null) {
+                    if (outputBondedData == null) {
+                        outputBondedData = bondedData;
+                    } else {
+                        if (!(bondedData.getFirst().equals(outputBondedData.getFirst()))) {
+                            output = is.copy();
+                            newOwners.clear();
+                            break;
+                        }
+                    }
+                }
+
+                if(output == null)
+                    output = is.copy();
+
             } else if (is.getItem() instanceof StampedDeedItem) {
-                ownerData = OwnershipData.getOwner(is);
-                bondedData = OwnershipData.getBonded(is);
+                Pair<UUID, String> bondedData = OwnershipData.getBonded(is);
+                if (bondedData != null) {
+                    if (outputBondedData == null) {
+                        outputBondedData = bondedData;
+                    } else {
+                        if (!(bondedData.getFirst().equals(outputBondedData.getFirst()))) {
+                            newOwners.clear();
+                            break;
+                        }
+                    }
+                }
+
+                if (OwnershipData.getOwnersCount(is) > 0)
+                    // Realistically will only have one
+                    newOwners.addAll(OwnershipData.getOwnersArrayList(is));
+                
             }
         }
 
         if (output == null)
             return base.getItems()[0];
 
-        if (ownerData == null || bondedData == null)
+        if (newOwners.size() == 0 || outputBondedData == null)
             return output.copy();
 
-        OwnershipData.setOwner(output, ownerData.getFirst(), ownerData.getSecond());
-        OwnershipData.setBonded(output, bondedData.getFirst(), bondedData.getSecond());
+        for (Pair<UUID, String> owner : newOwners)
+        {
+            OwnershipData.addOwner(output, owner.getFirst(), owner.getSecond());
+        }
+        OwnershipData.setBonded(output, outputBondedData.getFirst(), outputBondedData.getSecond());
         return output;
     }
 
@@ -92,7 +143,7 @@ public record OwnershipCraftingRecipe(ResourceLocation id, Ingredient base, Craf
     @Override
     public ItemStack getResultItem(RegistryAccess p_267052_) {
         ItemStack is = base.getItems()[0];
-        OwnershipData.setBonded(is, new UUID(0L, 0L), "Deed Owner");
+        OwnershipData.addOwner(is, new UUID(0L, 0L), "Deed Owner");
         return is;
     }
 
