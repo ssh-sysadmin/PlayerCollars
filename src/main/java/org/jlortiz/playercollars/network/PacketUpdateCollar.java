@@ -28,7 +28,7 @@ public class PacketUpdateCollar {
     }
 
     public enum OwnerState {
-        NOP, DEL, ADD
+        NOP, DEL
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -45,9 +45,6 @@ public class PacketUpdateCollar {
                 item.setPawColor(is, pawColor);
                 if (os == OwnerState.DEL) {
                     OwnershipData.removeOwner(is, p.getUUID(), p.getName().getString());
-                } else if (os == OwnerState.ADD) {
-                    if(OwnershipData.getBonded(is) == null)
-                        OwnershipData.addOwner(is, p.getUUID(), p.getName().getString());
                 }
             }
         });

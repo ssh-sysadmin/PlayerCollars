@@ -161,7 +161,8 @@ public class CollarItem extends Item implements DyeableLeatherItem, ICurio, ICap
         InteractionResultHolder<ItemStack> ir = super.use(p_41432_, p_41433_, p_41434_);
         if (ir.getResult() == InteractionResult.PASS && p_41433_.isCrouching() && p_41432_.isClientSide) {
             ItemStack is = p_41433_.getItemInHand(p_41434_);
-            if (OwnershipData.getBonded(is) == null || OwnershipData.isOwner(is, p_41433_) || OwnershipData.getBonded(is).getFirst().equals(p_41433_.getUUID()) ) {
+            Pair<UUID, String> bondedData = OwnershipData.getBonded(is);
+            if (bondedData == null || OwnershipData.isOwner(is, p_41433_) || bondedData.getFirst().equals(p_41433_.getUUID())) {
                 Minecraft.getInstance().setScreen(new CollarDyeScreen(ir.getObject(), p_41433_.getUUID()));
                 return new InteractionResultHolder<>(InteractionResult.SUCCESS, ir.getObject());
             } else {

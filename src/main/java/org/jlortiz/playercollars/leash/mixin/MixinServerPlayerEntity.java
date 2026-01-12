@@ -12,6 +12,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
+
+import org.jlortiz.playercollars.OwnershipData;
 import org.jlortiz.playercollars.PlayerCollarsMod;
 import org.jlortiz.playercollars.item.CollarItem;
 import org.jlortiz.playercollars.leash.LeashImpl;
@@ -22,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 
@@ -161,12 +164,20 @@ public abstract class MixinServerPlayerEntity implements LeashImpl {
                 if (is == null) {
                     is = PlayerCollarsMod.filterStacksByOwner(slot.getCosmeticStacks(), player.getUUID());
                 }
-                if (is != null) {
-                    found.set(true);
-                    leashplayer$loyalty = Mth.clamp(PlayerCollarsMod.COLLAR_ITEM.get().getEnchantmentLevel(is, Enchantments.LOYALTY), 0, 2);
+                if (is == null) {
+                    return;
                 }
+
+                if (!OwnershipData.isOwner(is, player))
+                    return;
+
+                found.set(true);
+                leashplayer$loyalty = Mth.clamp(PlayerCollarsMod.COLLAR_ITEM.get().getEnchantmentLevel(is, Enchantments.LOYALTY), 0, 2);
             }));
-            if (!found.get()) return InteractionResult.PASS;
+            if (!found.get())
+                return InteractionResult.PASS;
+            
+
             if (!player.isCreative()) {
                 stack.shrink(1);
             }

@@ -1,6 +1,5 @@
 package org.jlortiz.playercollars.client.screen;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -19,8 +18,6 @@ public class CollarDyeScreen extends Screen {
     private final ItemStack is;
     private final CollarItem item;
     private final int initColor, initPaw;
-    private final Pair<UUID, String> bondedData;
-    private final boolean isBonded;
     private boolean isOwner;
     private final boolean wasOwner;
 
@@ -30,11 +27,6 @@ public class CollarDyeScreen extends Screen {
         this.item = PlayerCollarsMod.COLLAR_ITEM.get();
         initColor = item.getColor(is);
         initPaw = item.getPawColor(is);
-        bondedData = OwnershipData.getBonded(is);
-        if(bondedData != null)
-            isBonded = bondedData.getFirst().equals(plr);
-        else
-            isBonded = false;
         isOwner = OwnershipData.isOwner(is, plr, null);
         wasOwner = isOwner;
     }
@@ -77,8 +69,6 @@ public class CollarDyeScreen extends Screen {
                 PacketUpdateCollar.OwnerState os = PacketUpdateCollar.OwnerState.NOP;
                 if(wasOwner && !isOwner)
                     os = PacketUpdateCollar.OwnerState.DEL;
-                else if (!wasOwner && isOwner)
-                    os = PacketUpdateCollar.OwnerState.ADD;
                 PlayerCollarsMod.NETWORK.sendToServer(new PacketUpdateCollar(is, os));
             }
             this.minecraft.setScreen(null);
@@ -89,29 +79,19 @@ public class CollarDyeScreen extends Screen {
             this.minecraft.setScreen(null);
         }).bounds(x - 80, y + 50, 75, 20).build());
 
-        Button ownerButton = Button.builder(Component.empty(), this::updateOwner).bounds(x - 80, y + 72, 160, 20)
-                .build();
-        if (!isOwner) {
-            ownerButton.setMessage(Component.translatable("item.playercollars.collar.become_owner"));
-        } else if (isOwner) {
-            ownerButton.setMessage(Component.translatable("item.playercollars.collar.remove_owner"));
-        }
-        if (isBonded)
-            ownerButton.active = false;
+        if (isOwner) {
+            Button ownerButton = Button
+                    .builder(Component.translatable("item.playercollars.collar.remove_owner"), this::updateOwner)
+                    .bounds(x - 80, y + 72, 160, 20)
+                    .build();
 
-        this.addRenderableWidget(ownerButton);
+            this.addRenderableWidget(ownerButton);
+        }
     }
 
     private void updateOwner(Button btn) {
-        if (!isOwner) {
-            isOwner = true;
-            btn.setMessage(Component.translatable("item.playercollars.collar.remove_owner"));
-        } else {
-            isOwner = false;
-            btn.setMessage(Component.translatable("item.playercollars.collar.become_owner"));
-            if(bondedData != null)
-                btn.active = false;
-        }
+        isOwner = false;
+        btn.active = false;
     }
 
     private void updateTextField(int i, String s) {
