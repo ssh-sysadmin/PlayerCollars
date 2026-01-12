@@ -14,9 +14,9 @@ public class StampedDeedItem extends Item{
     
     @Override
     public Component getName(ItemStack is) {
-        if (OwnershipData.getOwnersCount(is) == 0)
+        if (OwnershipData.getOwnersCount(is) == 0 || OwnershipData.getBonded(is) == null)
             return Component.translatable("item.playercollars.stamped_deed_of_ownership.invalid");
-        return Component.translatable("item.playercollars.stamped_deed_of_ownership", OwnershipData.getOwnersArrayList(is).get(0).getSecond());
+        return Component.translatable("item.playercollars.stamped_deed_of_ownership", OwnershipData.getOwnersArrayList(is).get(0).getSecond(), OwnershipData.getBonded(is).getSecond());
     }
 
 }

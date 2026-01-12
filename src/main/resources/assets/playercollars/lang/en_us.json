@@ -26,7 +26,7 @@
   "item.playercollars.deed_of_ownership.no_self_own": "Can't sign a contract with yourself!",
   "item.playercollars.deed_of_ownership.filled": "Unsigned Deed of Ownership",
   "item.playercollars.deed_of_ownership.filled_out": "Give the deed to your pet to sign",
-  "item.playercollars.stamped_deed_of_ownership": "%s's Deed of Ownership",
+  "item.playercollars.stamped_deed_of_ownership": "%s's Deed of Ownership for %s",
   "item.playercollars.stamped_deed_of_ownership.invalid": "Forged Deed of Ownership",
   "item.playercollars.golden_spatula": "Golden Spatula",
   "item.playercollars.golden_spatula_egg": "Golden Saptula",
